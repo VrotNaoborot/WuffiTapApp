@@ -1,6 +1,6 @@
 import random
 import time
-
+from math import ceil
 from requests_data import *
 import csv
 from colorama import Fore, init
@@ -38,6 +38,7 @@ def farming(color, name, curr_energy_balance, access_token, tg_user_id, proxy):
     print(f"{color}[{name}] Фарминг начался...")
     while current_energy > 100:
         start_time, end_time = generate_times(prev_time)
+        prev_time = end_time
         time.sleep(3)
         taps = random.randint(1, 50)
         farm_resp = farm_tap(access_token=access_token, tg_user_id=tg_user_id, taps=taps, start_time=start_time,
@@ -58,27 +59,55 @@ def account_farming(name, access_token, tg_user_id, proxy):
     estimate_response = estimate_earned(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
     if estimate_response is not None:
         if estimate_response['code'] == 200 and estimate_response['message'] == "Success":
-            print(f"{color_account}[{name}]Автофарминг добыл {estimate_response['data']['estimated_earned']} токенов.")
+            print(f"{color_account}[{name}] Автофарминг добыл {estimate_response['data']['estimated_earned']} токенов.")
             claim_response = claim_bot(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
             if claim_response is not None and claim_response['code'] == 200 and claim_response['message'] == "Success":
-                print(f"{color_account}[{name}]Токены получены.")
+                print(f"{color_account}[{name}] Токены получены.")
             else:
-                print(f"{color_account}[{name}]Не удалось получить токены")
+                print(f"{color_account}[{name}] Не удалось получить токены")
     else:
         print(f"{color_account} [{name}] estimate_earned вернуло None")
 
     tap_config_response = tap_config(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
     user_tap_count_tokens = 1
+    energy_limit = 3000
     if tap_config_response is not None and 'userPointIncreasePerTapConfig' in tap_config_response:
         user_tap_count_tokens = tap_config_response['userPointIncreasePerTapConfig']['basedValue']
+        energy_limit = tap_config_response['energyLimit']['basedValue']
 
     current_energy = 0
     tap_response = tap_status(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
     if tap_response is not None and 'currentEnergy' in tap_response:
         current_energy = tap_response['currentEnergy']
         print(f"{color_account}[{name}]Баланс: {tap_response['totalPawsEarned']}")
-    while current_energy > 100:
-        pass
+    while True:
+        farming(color=color_account, name=name, curr_energy_balance=current_energy, access_token=access_token,
+                tg_user_id=tg_user_id, proxy=proxy)
+        buff_resp = buff(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
+        if buff_resp is not None and 'instant_fill' in buff_resp:
+            count_instant_fill = buff_resp['instant_fill']
+            count_nitro_taps = buff_resp['nitro_taps']
+            if count_instant_fill > 0:
+                using_fill_resp = using_buff(2, tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
+                if using_fill_resp is not None and 'instant_fill' in using_fill_resp:
+                    print(f"{color_account}[{name}] Instant Fill использован.")
+                    continue
+            elif count_nitro_taps > 0:
+                while count_nitro_taps > 0:
+                    using_nitro_resp = using_buff(1, tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
+                    if using_nitro_resp is not None and 'nitro_taps' in using_nitro_resp:
+                        print(f"{color_account}[{name}] Nitro использован")
+                        count_nitro_taps -= 1
+                        prev_time = None
+                        for i in range(7):
+                            start_time, end_time = generate_times(prev_time)
+                            time.sleep(3)
+                            taps = random.randint(1, 50)
+                            farm_resp = farm_tap(access_token=access_token, tg_user_id=tg_user_id, taps=taps,
+                                                 start_time=start_time,
+                                                 end_time=end_time, proxy=proxy)
+                            prev_time = end_time
+            time.sleep(ceil(energy_limit / user_tap_count_tokens))
 
 
 def main():
@@ -136,4 +165,4 @@ def say_hello():
 
 
 if __name__ == '__main__':
-    main2()
+    main()
