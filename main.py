@@ -1,3 +1,6 @@
+import random
+import time
+
 from requests_data import *
 import csv
 from colorama import Fore, init
@@ -13,6 +16,69 @@ def reader_data():
         reader = csv.DictReader(file, delimiter=';')
         rows = list(reader)
         return rows
+
+
+def generate_times(previous_end_time=None):
+    # Если предыдущего endTime нет, устанавливаем startTime на текущее время
+    if previous_end_time is None:
+        start_time = int(time.time() * 1000)
+    else:
+        # Устанавливаем startTime чуть позже, чем предыдущий endTime
+        start_time = previous_end_time + random.randint(100, 500)  # Разница в пределах 100 миллисекунд
+
+    # Определяем разницу для endTime от 1.5 до 4 секунд
+    delta = random.uniform(1.2, 3.0)  # Разница в секундах
+    end_time = start_time + int(delta * 1000)  # Преобразуем в миллисекунды
+    return start_time, end_time
+
+
+def farming(color, name, curr_energy_balance, access_token, tg_user_id, proxy):
+    current_energy = curr_energy_balance
+    prev_time = None
+    print(f"{color}[{name}] Фарминг начался...")
+    while current_energy > 100:
+        start_time, end_time = generate_times(prev_time)
+        time.sleep(3)
+        taps = random.randint(1, 50)
+        farm_resp = farm_tap(access_token=access_token, tg_user_id=tg_user_id, taps=taps, start_time=start_time,
+                             end_time=end_time, proxy=proxy)
+        if farm_resp is not None and 'currentEnergy' in farm_resp:
+            current_energy = farm_resp['currentEnergy']
+        else:
+            continue
+    else:
+        print(f"{color}[{name}] Фарминг закончился...")
+
+
+def account_farming(name, access_token, tg_user_id, proxy):
+    color_account = random.choice(
+        [Fore.CYAN, Fore.GREEN, Fore.BLUE, Fore.YELLOW, Fore.BLACK, Fore.MAGENTA, Fore.RESET, Fore.WHITE,
+         Fore.LIGHTMAGENTA_EX])
+    # bot farming
+    estimate_response = estimate_earned(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
+    if estimate_response is not None:
+        if estimate_response['code'] == 200 and estimate_response['message'] == "Success":
+            print(f"{color_account}[{name}]Автофарминг добыл {estimate_response['data']['estimated_earned']} токенов.")
+            claim_response = claim_bot(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
+            if claim_response is not None and claim_response['code'] == 200 and claim_response['message'] == "Success":
+                print(f"{color_account}[{name}]Токены получены.")
+            else:
+                print(f"{color_account}[{name}]Не удалось получить токены")
+    else:
+        print(f"{color_account} [{name}] estimate_earned вернуло None")
+
+    tap_config_response = tap_config(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
+    user_tap_count_tokens = 1
+    if tap_config_response is not None and 'userPointIncreasePerTapConfig' in tap_config_response:
+        user_tap_count_tokens = tap_config_response['userPointIncreasePerTapConfig']['basedValue']
+
+    current_energy = 0
+    tap_response = tap_status(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
+    if tap_response is not None and 'currentEnergy' in tap_response:
+        current_energy = tap_response['currentEnergy']
+        print(f"{color_account}[{name}]Баланс: {tap_response['totalPawsEarned']}")
+    while current_energy > 100:
+        pass
 
 
 def main():
@@ -70,4 +136,4 @@ def say_hello():
 
 
 if __name__ == '__main__':
-    main()
+    main2()
