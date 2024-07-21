@@ -77,6 +77,18 @@ def account_farming(name, access_token, tg_user_id, proxy):
     if tap_response is not None and 'currentEnergy' in tap_response:
         current_energy = tap_response['currentEnergy']
         print(f"{color_account}[{name}] Баланс: {tap_response['totalPawsEarned']}")
+        print(f"{color_account}[{name}] Текущая энергия: {tap_response['currentEnergy']}")
+
+    # делаем клик для обновления энергии
+    if current_energy < 300:
+        start_time, end_time = generate_times()
+        print(f"{color_account}[{name}] Обновляем информацию об энергии")
+        farm_resp = farm_tap(access_token=access_token, tg_user_id=tg_user_id, taps=random.randint(1, 4),
+                             start_time=start_time,
+                             end_time=end_time, proxy=proxy)
+        if farm_resp is not None and 'currentEnergy' in farm_resp:
+            current_energy = farm_resp['currentEnergy']
+
     while True:
         # bot farming
         estimate_response = estimate_earned(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
