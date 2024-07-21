@@ -12,7 +12,7 @@ useragent = random.choice(ua.list)
 def farm_tap(access_token, tg_user_id, taps, start_time, end_time, proxy=None):
     headers = {
         "accept": "application/json, text/plain, */*",
-        "authorization": access_token,
+        "authorization": "Bearer " + access_token,
         "telegram-user-id": tg_user_id,
         "user-agent": useragent,
         "content-type": "application/json",
@@ -35,9 +35,9 @@ def farm_tap(access_token, tg_user_id, taps, start_time, end_time, proxy=None):
     )
     try:
         if proxy is None:
-            response = requests.post(url, headers=headers, data=data_json)
+            response = requests.put(url, headers=headers, data=data_json)
         else:
-            response = requests.post(url, headers=headers, data=data_json, proxies=proxy)
+            response = requests.put(url, headers=headers, data=data_json, proxies=proxy)
         return response.json()
     except json.JSONDecodeError as j:
         print(f"{Fore.RED}Ошибка при декодировании JSON ответа: {j}")
@@ -69,7 +69,7 @@ def user_login(query, tg_user_id, proxy=None, access_token=None):
         "accept-language": "ru,ru-RU;q=0.9,en-US;q=0.8,en;q=0.7"
     }
     if access_token is not None:
-        headers['authorization'] = access_token
+        headers['authorization'] = "Bearer " + access_token
     url = 'https://wuffitap-05-api.wuffi.io/v1/public-api/login-telegram'
     data_json = json.dumps(
         {
@@ -81,13 +81,9 @@ def user_login(query, tg_user_id, proxy=None, access_token=None):
             response = requests.post(url, headers=headers, data=data_json)
         else:
             response = requests.post(url, headers=headers, data=data_json, proxies=proxy)
-        response.raise_for_status()
         return response.json()
     except json.JSONDecodeError as j:
         print(f"{Fore.RED}Ошибка при декодировании JSON ответа: {j}")
-        return None
-    except requests.HTTPError as http_err:
-        print(f"{Fore.RED}HTTP ошибка: {http_err}")
         return None
     except requests.RequestException as req_err:
         print(f"{Fore.RED}Ошибка запроса: {req_err}")
@@ -101,7 +97,7 @@ def claim_bot(tg_user_id, access_token, proxy=None):
     headers = {
         "accept": "application/json, text/plain, */*",
         "telegram-user-id": tg_user_id,
-        "authorization": access_token,
+        "authorization": "Bearer " + access_token,
         "user-agent": useragent,
         "content-type": "application/json",
         "origin": "https://wuffitap.wuffi.io",
@@ -139,7 +135,7 @@ def estimate_earned(tg_user_id, access_token, proxy=None):
     headers = {
         "accept": "application/json, text/plain, */*",
         "telegram-user-id": tg_user_id,
-        "authorization": access_token,
+        "authorization": "Bearer " + access_token,
         "user-agent": useragent,
         "content-type": "application/json",
         "origin": "https://wuffitap.wuffi.io",
@@ -154,9 +150,9 @@ def estimate_earned(tg_user_id, access_token, proxy=None):
     url = 'https://wuffitap-05-api.wuffi.io/v1/protected-api/buff/bot/estimate-earned'
     try:
         if proxy is None:
-            response = requests.post(url, headers=headers)
+            response = requests.get(url, headers=headers)
         else:
-            response = requests.post(url, headers=headers, proxies=proxy)
+            response = requests.get(url, headers=headers, proxies=proxy)
         return response.json()
     except json.JSONDecodeError as j:
         print(f"{Fore.RED}Ошибка при декодировании JSON ответа: {j}")
@@ -176,7 +172,7 @@ def tap_status(tg_user_id, access_token, proxy=None):
     headers = {
         "accept": "application/json, text/plain, */*",
         "telegram-user-id": tg_user_id,
-        "authorization": access_token,
+        "authorization": "Bearer " + access_token,
         "user-agent": useragent,
         "content-type": "application/json",
         "origin": "https://wuffitap.wuffi.io",
@@ -191,9 +187,9 @@ def tap_status(tg_user_id, access_token, proxy=None):
     url = 'https://wuffitap-05-api.wuffi.io/v1/protected-api/tap-status'
     try:
         if proxy is None:
-            response = requests.post(url, headers=headers)
+            response = requests.get(url, headers=headers)
         else:
-            response = requests.post(url, headers=headers, proxies=proxy)
+            response = requests.get(url, headers=headers, proxies=proxy)
         return response.json()
     except json.JSONDecodeError as j:
         print(f"{Fore.RED}Ошибка при декодировании JSON ответа: {j}")
@@ -213,7 +209,7 @@ def tap_config(tg_user_id, access_token, proxy=None):
     headers = {
         "accept": "application/json, text/plain, */*",
         "telegram-user-id": tg_user_id,
-        "authorization": access_token,
+        "authorization": "Bearer " + access_token,
         "user-agent": useragent,
         "content-type": "application/json",
         "origin": "https://wuffitap.wuffi.io",
@@ -228,9 +224,9 @@ def tap_config(tg_user_id, access_token, proxy=None):
     url = 'https://wuffitap-05-api.wuffi.io/v1/protected-api/tap-config'
     try:
         if proxy is None:
-            response = requests.post(url, headers=headers)
+            response = requests.get(url, headers=headers)
         else:
-            response = requests.post(url, headers=headers, proxies=proxy)
+            response = requests.get(url, headers=headers, proxies=proxy)
         return response.json()
     except json.JSONDecodeError as j:
         print(f"{Fore.RED}Ошибка при декодировании JSON ответа: {j}")
@@ -250,7 +246,7 @@ def buff(tg_user_id, access_token, proxy=None):
     headers = {
         "accept": "application/json, text/plain, */*",
         "telegram-user-id": tg_user_id,
-        "authorization": access_token,
+        "authorization": "Bearer " + access_token,
         "user-agent": useragent,
         "content-type": "application/json",
         "origin": "https://wuffitap.wuffi.io",
@@ -265,9 +261,9 @@ def buff(tg_user_id, access_token, proxy=None):
     url = 'https://wuffitap-05-api.wuffi.io/v1/protected-api/buff'
     try:
         if proxy is None:
-            response = requests.post(url, headers=headers)
+            response = requests.get(url, headers=headers)
         else:
-            response = requests.post(url, headers=headers, proxies=proxy)
+            response = requests.get(url, headers=headers, proxies=proxy)
         response.raise_for_status()
         return response.json()
     except json.JSONDecodeError as j:
@@ -288,7 +284,7 @@ def using_buff(number_buff, tg_user_id, access_token, proxy=None):
     headers = {
         "accept": "application/json, text/plain, */*",
         "telegram-user-id": tg_user_id,
-        "authorization": access_token,
+        "authorization": "Bearer " + access_token,
         "user-agent": useragent,
         "content-type": "application/json",
         "origin": "https://wuffitap.wuffi.io",
@@ -306,13 +302,9 @@ def using_buff(number_buff, tg_user_id, access_token, proxy=None):
             response = requests.post(url, headers=headers)
         else:
             response = requests.post(url, headers=headers, proxies=proxy)
-        response.raise_for_status()
         return response.json()
     except json.JSONDecodeError as j:
         print(f"{Fore.RED}Ошибка при декодировании JSON ответа: {j}")
-        return None
-    except requests.HTTPError as http_err:
-        print(f"{Fore.RED}HTTP ошибка: {http_err}")
         return None
     except requests.RequestException as req_err:
         print(f"{Fore.RED}Ошибка запроса: {req_err}")
