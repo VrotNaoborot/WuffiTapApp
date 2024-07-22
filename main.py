@@ -182,7 +182,7 @@ def main():
     for acc in data:
         query = None if acc['query'] == "" else acc["query"]
         access_token = None if acc['access_token'] == "" else acc['access_token']
-        proxy = None if acc['proxy'] == "" else acc['proxy']
+        proxy = None if acc['proxy'] == "" else {'http': acc['proxy'], 'https': acc['proxy']}
         telegram_user_id = acc['tg_user_id']
         if telegram_user_id == '':
             print(f"{Fore.RED}Аккаунт {acc['number']} не указан tg_user_id")
@@ -206,6 +206,7 @@ def main():
                     exit()
             else:
                 print(f"{Fore.RED}Аккаунт: {acc['number']} не удалось получить dns от сервера.")
+                exit()
 
         # if (access_token is None and query is not None) or (access_token is not None and query is not None):
         #     print(f"{Fore.CYAN}Аккаунт: {acc['number']} получаем access_token...")
