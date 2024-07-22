@@ -1,0 +1,44 @@
+data.csv
+
+# Конфигурационные файлы и файлы с секретами
+*.env
+.env.local
+config.yaml
+
+# Конфигурационные файлы для IDE
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Файлы операционной системы
+.DS_Store
+Thumbs.db
+*~
+
+# Файлы сборки и артефакты
+/build/
+dist/
+*.out
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Зависимости
+/node_modules/
+/venv/
+.venv/
+
+# Файлы среды выполнения
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Файлы инструментов
+.eslintcache
+
+# Docker
+.dockerignore
