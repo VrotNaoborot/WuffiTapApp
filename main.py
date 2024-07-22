@@ -71,29 +71,30 @@ def account_farming(name, access_token, tg_user_id, proxy):
         energy_limit = tap_config_response['energyLimit']['basedValue']
         potion = tap_config_response["energyIncreasePerSecConfig"]['basedValue']
         print(f"{color_account}[{name}] Получена информация о конфиге")
-
+    else:
+        print(f"{color_account}[{name}] Не удалось получить информацю о конфиге. {tap_config_response}")
     current_energy = 0
     tap_response = tap_status(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
     if tap_response is not None and 'currentEnergy' in tap_response:
         current_energy = tap_response['currentEnergy']
         print(f"{color_account}[{name}] Баланс: {tap_response['totalPawsEarned']}")
         print(f"{color_account}[{name}] Текущая энергия: {tap_response['currentEnergy']}")
-
+    else:
+        print(f"{color_account}[{name}] Не удалось получить tap_response. {tap_response}")
     # делаем клик для обновления энергии
-    if current_energy < 300:
-        start_time, end_time = generate_times()
-        print(f"{color_account}[{name}] Обновляем информацию об энергии")
-        farm_resp = farm_tap(access_token=access_token, tg_user_id=tg_user_id, taps=random.randint(1, 4),
-                             start_time=start_time,
-                             end_time=end_time, proxy=proxy)
-        if farm_resp is not None and 'currentEnergy' in farm_resp:
-            current_energy = farm_resp['currentEnergy']
-
+    start_time, end_time = generate_times()
+    print(f"{color_account}[{name}] Обновляем информацию об энергии")
+    farm_resp = farm_tap(access_token=access_token, tg_user_id=tg_user_id, taps=random.randint(1, 4),
+                         start_time=start_time,
+                         end_time=end_time, proxy=proxy)
+    if farm_resp is not None and 'currentEnergy' in farm_resp:
+        current_energy = farm_resp['currentEnergy']
+        print(f"{color_account}[{name}] Энергия: {current_energy}")
     while True:
         # bot farming
         estimate_response = estimate_earned(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
         if estimate_response is not None:
-            if estimate_response['code'] == 200 and estimate_response['message'] == "Success":
+            if 'code' in estimate_response and estimate_response['code'] == 200 and estimate_response['message'] == "Success":
                 print(
                     f"{color_account}[{name}] Автофарминг добыл {estimate_response['data']['estimated_earned']} токенов.")
                 claim_response = claim_bot(tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
@@ -102,8 +103,10 @@ def account_farming(name, access_token, tg_user_id, proxy):
                     print(f"{color_account}[{name}] Токены получены.")
                 else:
                     print(f"{color_account}[{name}] Не удалось получить токены")
+            else:
+                print(f"{color_account}[{name}] Estimate_response вернуло: {estimate_response}")
         else:
-            print(f"{color_account} [{name}] estimate_earned вернуло None")
+            print(f"{color_account}[{name}] estimate_earned вернуло None")
 
         farming(color=color_account, name=name, curr_energy_balance=current_energy, access_token=access_token,
                 tg_user_id=tg_user_id, proxy=proxy)
@@ -172,7 +175,10 @@ def main():
             if login_resp is not None and 'token' in login_resp:
                 acc['access_token'] = login_resp['token']
                 data_changed = True
-            elif login_resp is None or ('message' in login_resp and login_resp['401: Unauthorized']):
+            elif "error" in login_resp and login_resp['error'] == "Unauthorized app URL":
+                print(f"{Fore.RED} Аккаунт: {acc['number']} Cf bypass")
+                exit()
+            elif login_resp is None or ('message' in login_resp and login_resp['401: Unauthorized']): # если не правильный access_token, пытаемся без него
                 second_log_resp = user_login(query=query, tg_user_id=telegram_user_id, proxy=proxy)
                 if second_log_resp is not None and 'token' in second_log_resp:
                     acc['access_token'] = login_resp['token']
@@ -181,7 +187,7 @@ def main():
                     print(f"{Fore.RED}Аккаунт: {acc['number']} не удалось получить access_token. Обновите query")
                     exit()
             else:
-                print(f"{Fore.RED}Не удалось получить токен.")
+                print(f"{Fore.RED}Не удалось получить токен. {login_resp}")
                 exit()
         elif query is None and access_token is None:
             print(f"{Fore.RED}На аккаунте {acc['number']} отсутствует query и access_token")
