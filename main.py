@@ -192,16 +192,20 @@ def main():
             exit()
         if access_token is None:
             print(f"{Fore.CYAN}Аккаунт: {acc['number']} получаем access_token...")
-            login_resp = user_login(query, tg_user_id=telegram_user_id, proxy=proxy, access_token=access_token)
-            if login_resp is not None and 'token' in login_resp:
-                acc['access_token'] = login_resp['token']
-                data_changed = True
-            elif "error" in login_resp and login_resp['error'] == "Unauthorized app URL":
-                print(f"{Fore.RED}Аккаунт: {acc['number']} Cf bypass")
-                exit()
+            dns_response = dns_resolver(tg_user_id=telegram_user_id, proxy=proxy)
+            if dns_response is not None and 'dns' in dns_response:
+                login_resp = user_login(dns=dns_response['dns'], query=query, tg_user_id=telegram_user_id, proxy=proxy, access_token=access_token)
+                if login_resp is not None and 'token' in login_resp:
+                    acc['access_token'] = login_resp['token']
+                    data_changed = True
+                elif "error" in login_resp and login_resp['error'] == "Unauthorized app URL":
+                    print(f"{Fore.RED}Аккаунт: {acc['number']} Cf bypass")
+                    exit()
+                else:
+                    print(f"{Fore.RED}Не удалось получить access_token. {login_resp}")
+                    exit()
             else:
-                print(f"{Fore.RED}Не удалось получить access_token. {login_resp}")
-                exit()
+                print(f"{Fore.RED}Аккаунт: {acc['number']} не удалось получить dns от сервера.")
 
         # if (access_token is None and query is not None) or (access_token is not None and query is not None):
         #     print(f"{Fore.CYAN}Аккаунт: {acc['number']} получаем access_token...")
