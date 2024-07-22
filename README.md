@@ -1,8 +1,8 @@
 # Auto farming WuffiTapApp
-* multithreading
 * proxy
 * multiaccount
-* python 3.11 +
+* auto using boost
+* auto claim TapBot
 
 # Как запустить
 * Зайти в [через web-версию telegram в Бота WuffiTap](https://t.me/Wuffitap_Bot/wuffitap?startapp=r_668581793)
