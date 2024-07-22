@@ -152,7 +152,7 @@ def account_farming(dns, name, access_token, tg_user_id, proxy):
                             start_time, end_time = generate_times(prev_time)
                             time.sleep(3)
                             taps = random.randint(5, 50)
-                            farm_resp = farm_tap(access_token=access_token, tg_user_id=tg_user_id, taps=taps,
+                            farm_resp = farm_tap(dns=dns, access_token=access_token, tg_user_id=tg_user_id, taps=taps,
                                                  start_time=start_time,
                                                  end_time=end_time, proxy=proxy)
 
@@ -238,8 +238,10 @@ def main():
     data = reader_data()
     threads = []
     for acc_user in data:
-        print(acc_user['query'].split('&'))
-        user_data = acc_user['query'].split('&')[0].split('=')[1]
+        if acc_user['query'].startswith("user"):
+            user_data = acc_user['query'].split('&')[0].split('=')[1]
+        else:
+            user_data = acc_user['query'].split('&')[1].split('=')[1]
         user_info = urllib.parse.unquote(user_data)
         user_info = json.loads(user_info)
 

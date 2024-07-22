@@ -161,7 +161,6 @@ def claim_bot(dns, tg_user_id, access_token, proxy=None):
         else:
             response = requests.post(url, headers=headers, proxies=proxy)
         response.raise_for_status()
-        print(response)
         return response.json()
     except json.JSONDecodeError as j:
         print(f"{Fore.RED}Ошибка при декодировании JSON ответа: {j}")
