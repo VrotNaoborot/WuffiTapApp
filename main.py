@@ -80,10 +80,18 @@ def account_farming(dns, name, access_token, tg_user_id, proxy):
     current_energy = 0
 
     while True:
-        daily_checkin_code = daily_checkin(dns, tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
-        if daily_checkin_code == 200:
-            # daily reward
-            pass
+        daily_checkin_resp, daily_code = daily_checkin(dns, tg_user_id=tg_user_id, access_token=access_token,
+                                                       proxy=proxy)
+        if daily_checkin_resp is not None and daily_code == 200:
+            for day in daily_checkin_resp:
+                if day.get("status", 0) == 1:
+                    id = day["id"]
+                    name = day["name"]
+                    count = day['description']
+                    claim_resp, claim_code = daily_claim(dns, tg_user_id=tg_user_id, task_id=id,
+                                                         access_token=access_token, proxy=proxy)
+                    if claim_resp is not None and "id" in claim_resp and claim_code == 200:
+                        print(f"{color_account}[{name}] {name}: Получено: {count}")
 
         tap_response = tap_status(dns=dns, tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
         if tap_response is not None and 'currentEnergy' in tap_response:
@@ -194,7 +202,8 @@ def main():
             print(f"{Fore.CYAN}Аккаунт: {acc['number']} получаем access_token...")
             dns_response = dns_resolver(tg_user_id=telegram_user_id, proxy=proxy)
             if dns_response is not None and 'dns' in dns_response:
-                login_resp = user_login(dns=dns_response['dns'], query=query, tg_user_id=telegram_user_id, proxy=proxy, access_token=access_token)
+                login_resp = user_login(dns=dns_response['dns'], query=query, tg_user_id=telegram_user_id, proxy=proxy,
+                                        access_token=access_token)
                 if login_resp is not None and 'token' in login_resp:
                     acc['access_token'] = login_resp['token']
                     data_changed = True
