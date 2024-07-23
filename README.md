@@ -3,6 +3,7 @@
 * multiaccount
 * auto using boost
 * auto claim TapBot
+* claim daily reward
 
 # Как запустить
 * Зайти в [через web-версию telegram в Бота WuffiTap](https://t.me/Wuffitap_Bot/wuffitap?startapp=r_668581793)

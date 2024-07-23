@@ -160,7 +160,6 @@ def claim_bot(dns, tg_user_id, access_token, proxy=None):
             response = requests.post(url, headers=headers)
         else:
             response = requests.post(url, headers=headers, proxies=proxy)
-        response.raise_for_status()
         return response.json()
     except json.JSONDecodeError as j:
         print(f"{Fore.RED}Ошибка при декодировании JSON ответа: {j}")
@@ -413,6 +412,45 @@ def daily_claim(dns, tg_user_id, task_id, access_token, proxy=None):
     payload = json.dumps(
         {
             "taskId": task_id
+        }
+    )
+    try:
+        if proxy is None:
+            response = requests.post(url, headers=headers, data=payload)
+        else:
+            response = requests.post(url, headers=headers, data=payload, proxies=proxy)
+        return response.json(), response.status_code
+    except json.JSONDecodeError as j:
+        print(f"{Fore.RED}Ошибка при декодировании JSON ответа: {j}")
+        return None, -1
+    except requests.RequestException as req_err:
+        print(f"{Fore.RED}Ошибка запроса: {req_err}")
+        return None, -1
+    except Exception as ex:
+        print(f"{Fore.RED}Неизвестная ошибка: {ex}")
+        return None, -1
+
+
+def activate_tapbot(dns, tg_user_id, access_token, proxy=None):
+    headers = {
+        "accept": "application/json, text/plain, */*",
+        "telegram-user-id": tg_user_id,
+        "authorization": "Bearer " + access_token,
+        "user-agent": useragent,
+        "content-type": "application/json",
+        "origin": "https://wuffitap.wuffi.io",
+        "x-requested-with": "org.telegram.messenger.web",
+        "sec-fetch-site": "same-site",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-dest": "empty",
+        "referer": "https://wuffitap.wuffi.io/",
+        "accept-encoding": "gzip, deflate",
+        "accept-language": accept_language
+    }
+    url = f'https://{dns}/v1/protected-api/buff/'
+    payload = json.dumps(
+        {
+            "botId": "1"
         }
     )
     try:

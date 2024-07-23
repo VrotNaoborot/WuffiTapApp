@@ -81,23 +81,28 @@ def account_farming(dns, name, access_token, tg_user_id, proxy):
 
     while True:
         daily_checkin_resp, daily_code = daily_checkin(dns, tg_user_id=tg_user_id, access_token=access_token,
-                                                       proxy=proxy)
+                                                             proxy=proxy)
+        balance = 0
         if daily_checkin_resp is not None and daily_code == 200:
-            for day in daily_checkin_resp:
+            for day in daily_checkin_resp['data']:
                 if day.get("status", 0) == 1:
                     id = day["id"]
-                    name = day["name"]
+                    d = day["name"]
                     count = day['description']
                     claim_resp, claim_code = daily_claim(dns, tg_user_id=tg_user_id, task_id=id,
                                                          access_token=access_token, proxy=proxy)
                     if claim_resp is not None and "id" in claim_resp and claim_code == 200:
-                        print(f"{color_account}[{name}] {name}: Получено: {count}")
+                        print(f"{color_account}[{name}] {d}: Получено: {count}")
 
         tap_response = tap_status(dns=dns, tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
         if tap_response is not None and 'currentEnergy' in tap_response:
             current_energy = tap_response['currentEnergy']
-            print(f"{color_account}[{name}] Баланс: {tap_response['totalPawsEarned']}")
+            balance = tap_response['totalPawsEarned']
+            print(f"{color_account}[{name}] Баланс: {balance}")
             print(f"{color_account}[{name}] Текущая энергия: {tap_response['currentEnergy']}")
+        elif tap_response is not None and 'message' in tap_response and tap_response['message'] == "invalid user session.":
+            print(f"{color_account}[{name}] Необходимо сменить токен сессии")
+            exit()
         else:
             print(f"{color_account}[{name}] Не удалось получить tap_response. {tap_response}")
         # делаем клик для обновления энергии
@@ -110,6 +115,9 @@ def account_farming(dns, name, access_token, tg_user_id, proxy):
         if farm_resp is not None and 'currentEnergy' in farm_resp:
             current_energy = farm_resp['currentEnergy']
             print(f"{color_account}[{name}] Энергия: {current_energy}")
+        elif farm_resp is not None and 'message' in farm_resp and farm_resp['message'] == "invalid user session.":
+            print(f"{color_account}[{name}] Необходимо сменить токен сессии")
+            exit()
         else:
             print(f"{color_account}[{name}] Не удалось обновить информацию об энергии. {farm_resp}")
         # bot farming
@@ -124,9 +132,18 @@ def account_farming(dns, name, access_token, tg_user_id, proxy):
                     'message'] == "Success":
                     print(f"{color_account}[{name}] Токены получены.")
                 else:
-                    print(f"{color_account}[{name}] Не удалось получить токены")
+                    print(f"{color_account}[{name}] Не удалось получить токены. {claim_response}")
             elif 'message' in estimate_response and estimate_response['message'] == "User has no activated TapBot!":
-                print(f"{color_account}[{name}] TapBot не активирован")
+                print(f"{color_account}[{name}] TapBot не активирован. Активируем..")
+                if balance > 10_000:
+                    activate_resp, activate_code = activate_tapbot(dns, tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
+                    if activate_resp is not None and activate_code == 200:
+                        print(f"{color_account}[{name}] TapBot активирован")
+            elif estimate_response is not None and 'message' in estimate_response and estimate_response[
+                'message'] == "invalid user session.":
+                print(f"{color_account}[{name}] Необходимо сменить токен сессии")
+                exit()
+
             else:
                 print(f"{color_account}[{name}] Estimate_response вернуло: {estimate_response}")
         else:
@@ -166,7 +183,7 @@ def account_farming(dns, name, access_token, tg_user_id, proxy):
 
                             prev_time = end_time
                     else:
-                        print(f"{color_account}[{name}] Не удалось использовать бафф")
+                        print(f"{color_account}[{name}] Не удалось использовать бафф. {using_nitro_resp}")
         else:
             print(buff_resp)
         time_sleep = ceil(energy_limit / potion)
