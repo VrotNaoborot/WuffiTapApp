@@ -60,7 +60,7 @@ def farming(dns, color, name, curr_energy_balance, access_token, tg_user_id, pro
 
 def account_farming(dns, name, access_token, tg_user_id, proxy):
     color_account = random.choice(
-        [Fore.CYAN, Fore.GREEN, Fore.BLUE, Fore.YELLOW, Fore.BLACK, Fore.MAGENTA, Fore.RESET, Fore.WHITE,
+        [Fore.CYAN, Fore.GREEN, Fore.BLUE, Fore.YELLOW, Fore.MAGENTA, Fore.RESET, Fore.WHITE,
          Fore.LIGHTMAGENTA_EX])
 
     tap_config_response = tap_config(dns=dns, tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
@@ -93,6 +93,10 @@ def account_farming(dns, name, access_token, tg_user_id, proxy):
                                                          access_token=access_token, proxy=proxy)
                     if claim_resp is not None and "id" in claim_resp and claim_code == 200:
                         print(f"{color_account}[{name}] {d}: Получено: {count}")
+                    else:
+                        print(f"{color_account}[{name}] {d}: Не удалось получить ежедневную награду: {claim_resp}")
+        else:
+            print(daily_checkin_resp)
 
         tap_response = tap_status(dns=dns, tg_user_id=tg_user_id, access_token=access_token, proxy=proxy)
         if tap_response is not None and 'currentEnergy' in tap_response:

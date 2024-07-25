@@ -408,7 +408,7 @@ def daily_claim(dns, tg_user_id, task_id, access_token, proxy=None):
         "accept-encoding": "gzip, deflate",
         "accept-language": accept_language
     }
-    url = f'https://{dns}/v1/protected-api/user/'
+    url = f'https://{dns}/v1/protected-api/user/quests/claim'
     payload = json.dumps(
         {
             "taskId": task_id
